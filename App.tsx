@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, Text, View, Button, FlatList } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,13 +7,16 @@ import {useNavigation} from '@react-navigation/native';
 
 const Stack = createNativeStackNavigator();
 
-const Song = (props:any, {navigation}:any) =>{
-    const[songid,setSongid] = useState(1)
-
+const Song = (props:any) =>{
+    const[songid,setSongid] = useState()
+    const navigation = useNavigation();
     const solicitud_detallada = async(song_id:any) => {
-        var respuesta = await fetch("http://127.0.0.1:5000/songDetails/${song_id}");
+        var respuesta = await fetch(`http://127.0.0.1:5000/songDetails/${song_id}`);
         setSongid(await respuesta.json())
     }
+    useEffect (()=> {
+        solicitud_detallada(props.id)
+    },[solicitud_detallada]);
 
     return(
         <View>
@@ -21,7 +24,11 @@ const Song = (props:any, {navigation}:any) =>{
             <Button
                 title={props.nombre}
                 onPress={() => {
-                    navigation.navigate("Detalle")
+                    console.log(songid)
+
+                    console.log(songid[0].name)
+                    navigation.navigate('Detalle', {nombreCancion: songid[0].name, nombreAutor: songid[0].author})
+
                 }}
             />
         </View>
@@ -65,6 +72,7 @@ const Principal = ({navigation} : any) =>{
                   <Song
                       nombre={item.name}
                       id={item.id}
+                      navigation={navigation}
                   />
                 }
           />
@@ -77,7 +85,8 @@ const Principal = ({navigation} : any) =>{
 const Detalle = ({navigation, route} : any) =>{
   return(
     <View style={styles.container}>
-        <Text> Nombre de la canción: {route.params.nombreDato} </Text>
+        <Text> Nombre de la canción: {route.params.nombreCancion}  </Text>
+        <Text> Nombre del autor: {route.params.nombreAutor}  </Text>
     </View>
   )
 };
